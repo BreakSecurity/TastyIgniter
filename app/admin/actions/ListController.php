@@ -101,6 +101,50 @@ class ListController extends ControllerAction
         $this->makeLists();
     }
 
+    public function index_onSwitchListField()
+    {
+        $checkedIds = post('checked');
+        $columnToSwitch = post('column');
+
+        if (!$checkedIds OR !is_array($checkedIds) OR !count($checkedIds)) {
+            //flash()->success(lang('admin::lang.list.delete_empty'));
+            flash()->success('test');
+
+            return $this->controller->refreshList();
+        }
+
+        if (!$alias = post('alias'))
+            $alias = $this->primaryAlias;
+
+        $listConfig = $this->makeConfig($this->listConfig[$alias], $this->requiredConfig);
+
+        $modelClass = $listConfig['model'];
+        $model = new $modelClass;
+        $model = $this->controller->listExtendModel($model, $alias);
+
+        $query = $model->newQuery();
+        $this->controller->listExtendQueryBefore($query, $alias);
+
+        $query->whereIn($model->getKeyName(), $checkedIds);
+        $records = $query->get();
+
+        // Delete records
+        if ($count = $records->count()) {
+            foreach ($records as $record) {
+                $record->save();
+				flash()->success('test 2');
+            }
+
+            // $prefix = ($count > 1) ? ' records' : 'record';
+            // flash()->success(sprintf(lang('admin::lang.alert_success'), '['.$count.']'.$prefix.' '.lang('admin::lang.text_deleted')));
+        }
+        // else {
+        //     flash()->warning(sprintf(lang('admin::lang.alert_error_nothing'), lang('admin::lang.text_deleted')));
+        // }
+
+        return $this->controller->refreshList($alias);
+    }
+
     public function index_onDelete()
     {
         $checkedIds = post('checked');
