@@ -131,6 +131,7 @@ class ListController extends ControllerAction
         // Delete records
         if ($count = $records->count()) {
             foreach ($records as $record) {
+                $record[$columnToSwitch] = !$record[$columnToSwitch];
                 $record->save();
 				flash()->success('test 2');
             }
